@@ -10,8 +10,32 @@ from typing import Any, Dict, Iterable
 
 _JSON_SUFFIXES = {".json", ".jsonl", ".ndjson"}
 _SQLITE_TABLE_COLUMNS: Dict[str, Iterable[str]] = {
-    "board_scores": ("run_date", "board_code", "score", "breakdown"),
-    "leader_candidates": ("run_date", "board_code", "symbol", "return_pct", "avg_turnover"),
+    "strong_boards": (
+        "run_date",
+        "board_name",
+        "score",
+        "trend_score",
+        "hype_score",
+        "capital_score",
+        "leader_score",
+    ),
+    "rps_candidates": (
+        "run_date",
+        "board_name",
+        "rps_score",
+        "relative_lag",
+        "capital_spillover",
+        "hype_spillover",
+        "tech_ready",
+    ),
+    "leaders": (
+        "run_date",
+        "board_name",
+        "stock_code",
+        "stock_name",
+        "is_leader",
+        "strength",
+    ),
 }
 _SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 
@@ -70,6 +94,8 @@ class Database:
             value = record.get(column)
             if column == "breakdown" and value is not None and not isinstance(value, str):
                 value = json.dumps(value, ensure_ascii=False)
+            if column == "is_leader" and value is not None:
+                value = int(bool(value))
             values.append(value)
 
         placeholders = ", ".join(["?"] * len(columns))

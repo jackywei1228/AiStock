@@ -1,49 +1,69 @@
-"""Synthetic board price history."""
+"""Board price history sourced from AKShare with fallbacks."""
 from __future__ import annotations
 
-import random
 from dataclasses import dataclass
 from datetime import date
 from typing import Dict, Iterable, List
 
+from .board_data import Board
 from ..utils import akshare_helper
 
 
 @dataclass(frozen=True)
 class BoardPriceBar:
     board: str
+    category: str
     date: date
     close: float
+    change_pct: float
+    change_amount: float
     volume: float
     turnover: float
+    turnover_rate: float
+    ma5: float
+    ma10: float
 
 
-def fetch_board_prices(boards: Iterable[str], start: date, end: date) -> Dict[str, List[BoardPriceBar]]:
-    """Return pseudo price series for each board.
-
-    The data is deterministic to keep the tests stable.  A seeded random
-    walk is used to create reasonable looking price and volume series.
-    """
+def fetch_board_prices(boards: Iterable[Board], start: date, end: date) -> Dict[str, List[BoardPriceBar]]:
+    """Return market data for each requested board."""
 
     result: Dict[str, List[BoardPriceBar]] = {}
-    days = list(akshare_helper.iter_trading_days(start, end))
     for board in boards:
-        seed = akshare_helper.seed_for(f"price-{board}")
-        closes = akshare_helper.random_walk(base=100.0, step=0.05, days=len(days), seed=seed)
-        rng = random.Random(seed)
-        series: List[BoardPriceBar] = []
-        for idx, day in enumerate(days):
-            # Allow the seeded RNG to generate deterministic but varied figures.
-            volume = round(1_000_000 * (1 + rng.uniform(-0.3, 0.3)), 2)
-            turnover = round(closes[idx] * volume / 10_000, 2)
-            series.append(
+        history = akshare_helper.board_price_history(
+            board.code,
+            start,
+            end,
+            board_name=board.name,
+            category=board.category,
+        )
+        closes = [item["close"] for item in history]
+        bars: List[BoardPriceBar] = []
+        for idx, item in enumerate(history):
+            ma5 = _moving_average(closes, idx, 5)
+            ma10 = _moving_average(closes, idx, 10)
+            bars.append(
                 BoardPriceBar(
-                    board=board,
-                    date=day,
-                    close=closes[idx],
-                    volume=volume,
-                    turnover=turnover,
+                    board=board.code,
+                    category=board.category,
+                    date=item["date"],
+                    close=item["close"],
+                    change_pct=item.get("change_pct", 0.0),
+                    change_amount=item.get("change_amount", 0.0),
+                    volume=item.get("volume", 0.0),
+                    turnover=item.get("turnover", 0.0),
+                    turnover_rate=item.get("turnover_rate", 0.0),
+                    ma5=ma5,
+                    ma10=ma10,
                 )
             )
-        result[board] = series
+        if bars:
+            result[board.code] = bars
     return result
+
+
+def _moving_average(values: List[float], idx: int, window: int) -> float:
+    start_idx = max(0, idx - window + 1)
+    subset = values[start_idx : idx + 1]
+    if not subset:
+        return 0.0
+    return sum(subset) / len(subset)

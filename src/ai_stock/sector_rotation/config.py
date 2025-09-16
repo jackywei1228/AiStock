@@ -15,19 +15,37 @@ from typing import Dict
 
 @dataclass
 class FactorWeights:
-    """Weighting scheme for the various factor models."""
+    """Weighting scheme for the strength score."""
 
-    trend: float = 0.4
-    hype: float = 0.2
+    trend: float = 0.35
+    hype: float = 0.25
     capital: float = 0.25
-    rotation: float = 0.15
+    leader: float = 0.15
 
     def as_dict(self) -> Dict[str, float]:
         return {
             "trend": self.trend,
             "hype": self.hype,
             "capital": self.capital,
-            "rotation": self.rotation,
+            "leader": self.leader,
+        }
+
+
+@dataclass
+class RotationWeights:
+    """Weighting scheme for the rotation readiness score."""
+
+    relative_lag: float = 0.4
+    capital_spillover: float = 0.3
+    hype_spillover: float = 0.2
+    technical_readiness: float = 0.1
+
+    def as_dict(self) -> Dict[str, float]:
+        return {
+            "relative_lag": self.relative_lag,
+            "capital_spillover": self.capital_spillover,
+            "hype_spillover": self.hype_spillover,
+            "technical_readiness": self.technical_readiness,
         }
 
 
@@ -41,6 +59,7 @@ class AnalysisConfig:
     leaders_per_board: int = 2
     initial_cash: float = 1_000_000.0
     factor_weights: FactorWeights = field(default_factory=FactorWeights)
+    rotation_weights: RotationWeights = field(default_factory=RotationWeights)
 
     @classmethod
     def daily_defaults(cls, as_of: date | None = None) -> "AnalysisConfig":
