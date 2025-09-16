@@ -30,17 +30,18 @@ def factor_table(
     hype: Mapping[str, HypeComponents],
     capital: Mapping[str, CapitalComponents],
     leader: Mapping[str, LeaderComponents],
-    boards: Sequence[str],
+    boards: Sequence[BoardScore],
 ) -> str:
     """Return an aligned table summarising factor scores."""
 
-    header = "Board   Trend    Hype     Capital  Leader"
+    header = "Board   Name            Trend    Hype     Capital  Leader"
     lines = [header, "-" * len(header)]
-    for board in boards:
-        leader_score = leader.get(board).score if board in leader else 0.0
+    for score in boards:
+        code = score.board
+        leader_score = leader.get(code).score if code in leader else 0.0
         lines.append(
-            f"{board:<7}{trend[board].score:>8.2f}{hype[board].score:>9.2f}"
-            f"{capital[board].score:>9.2f}{leader_score:>9.2f}"
+            f"{code:<7}{score.name:<15}{trend[code].score:>8.2f}{hype[code].score:>9.2f}"
+            f"{capital[code].score:>9.2f}{leader_score:>9.2f}"
         )
     return "\n".join(lines)
 
@@ -57,7 +58,8 @@ def rotation_pathway(
     lines = ["Rotation Pathway", "-" * 18]
     for candidate in candidates:
         next_score = predictions.get(candidate.board, 0.0)
+        label = f"{candidate.board} ({candidate.name})" if candidate.name else candidate.board
         lines.append(
-            f"{candidate.board} -> readiness={candidate.predicted:.2f} next={next_score:.2f}"
+            f"{label} -> readiness={candidate.predicted:.2f} next={next_score:.2f}"
         )
     return "\n".join(lines)

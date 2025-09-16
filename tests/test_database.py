@@ -17,6 +17,7 @@ def test_sqlite_backend_persists_results(tmp_path):
     board_scores = [
         BoardScore(
             board="BK001",
+            name="示例板块",
             score=1.23,
             breakdown={"trend": 0.5, "hype": 0.4, "capital": 0.3, "leader": 0.2},
         )
@@ -24,6 +25,7 @@ def test_sqlite_backend_persists_results(tmp_path):
     rotation_candidates = [
         RpsCandidate(
             board="BK002",
+            name="轮动候选",
             predicted=2.34,
             breakdown={
                 "relative_lag": 0.7,
@@ -60,7 +62,7 @@ def test_sqlite_backend_persists_results(tmp_path):
         ).fetchone()
 
     assert board_row is not None
-    assert board_row[0] == "BK001"
+    assert board_row[0] == "示例板块"
     assert board_row[1] == pytest.approx(1.23)
     assert board_row[2] == pytest.approx(0.5)
     assert board_row[3] == pytest.approx(0.4)
@@ -68,7 +70,7 @@ def test_sqlite_backend_persists_results(tmp_path):
     assert board_row[5] == pytest.approx(0.2)
 
     assert leader_row is not None
-    assert leader_row[0] == "BK001"
+    assert leader_row[0] == "示例板块"
     assert leader_row[1] == "AAA"
     assert leader_row[2] == "Alpha"
     assert leader_row[3] == 1
@@ -76,7 +78,7 @@ def test_sqlite_backend_persists_results(tmp_path):
     assert leader_row[4] == pytest.approx(expected_strength)
 
     assert rps_row is not None
-    assert rps_row[0] == "BK002"
+    assert rps_row[0] == "轮动候选"
     assert rps_row[1] == pytest.approx(2.34)
     assert rps_row[2] == pytest.approx(0.7)
     assert rps_row[3] == pytest.approx(0.6)

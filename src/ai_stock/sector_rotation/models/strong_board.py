@@ -15,6 +15,7 @@ from .multi_factor import combine_strength_score, score_from_breakdown
 @dataclass(frozen=True)
 class BoardScore:
     board: str
+    name: str
     score: float
     breakdown: Dict[str, float]
 
@@ -24,6 +25,7 @@ def rank_boards(
     hype: Dict[str, HypeComponents],
     capital: Dict[str, CapitalComponents],
     leader: Dict[str, LeaderComponents],
+    board_names: Dict[str, str],
     weights: FactorWeights,
 ) -> List[BoardScore]:
     """Return ranked boards based on the weighted factor sum."""
@@ -38,6 +40,7 @@ def rank_boards(
         scores.append(
             BoardScore(
                 board=board,
+                name=board_names.get(board, board),
                 score=score_from_breakdown(breakdown),
                 breakdown={
                     "trend": breakdown.trend,

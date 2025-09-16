@@ -13,6 +13,7 @@ from .multi_factor import combine_rotation_score, rotation_from_breakdown
 @dataclass(frozen=True)
 class RpsCandidate:
     board: str
+    name: str
     predicted: float
     breakdown: Dict[str, float]
 
@@ -39,6 +40,7 @@ def predict_rotation_candidates(
     weights: RotationWeights,
     top_n: int = 5,
     exclude_current: bool = True,
+    board_names: Dict[str, str] | None = None,
 ) -> List[RpsCandidate]:
     """Return next rotation candidates ranked by readiness."""
 
@@ -50,7 +52,12 @@ def predict_rotation_candidates(
         breakdown = combine_rotation_score(component, weights)
         total = rotation_from_breakdown(breakdown)
         candidates.append(
-            RpsCandidate(board=board, predicted=total, breakdown=breakdown.as_dict)
+            RpsCandidate(
+                board=board,
+                name=(board_names.get(board) if board_names else board),
+                predicted=total,
+                breakdown=breakdown.as_dict,
+            )
         )
     candidates.sort(key=lambda c: c.predicted, reverse=True)
     return candidates[:top_n]

@@ -48,7 +48,7 @@ def build_daily_report(
         allocation = allocations.get(score.board, 0.0)
         prediction = predictions.get(score.board, 0.0)
         lines.append(
-            f"{score.board}: score={score.score:.2f} alloc={allocation:,.0f} next={prediction:.2f}"
+            f"{score.board} ({score.name}): score={score.score:.2f} alloc={allocation:,.0f} next={prediction:.2f}"
         )
         leader_details = leaders.get(score.board, [])
         if leader_details:
@@ -61,8 +61,9 @@ def build_daily_report(
         lines.append("RPS Candidates")
         lines.append("-")
         for candidate in rotation_candidates:
+            label = f"{candidate.board} ({candidate.name})" if candidate.name else candidate.board
             lines.append(
-                f"{candidate.board}: rps={candidate.predicted:.2f}"
+                f"{label}: rps={candidate.predicted:.2f}"
                 f" ({_format_breakdown(candidate.breakdown)})"
             )
 
@@ -71,8 +72,9 @@ def build_daily_report(
         lines.append("Next Rotation Watchlist")
         lines.append("-")
         for candidate in candidate_boards:
+            label = f"{candidate.board} ({candidate.name})" if candidate.name else candidate.board
             lines.append(
-                f"{candidate.board}: ready={candidate.predicted:.2f}"
+                f"{label}: ready={candidate.predicted:.2f}"
                 f" ({_format_breakdown(candidate.breakdown)})"
             )
 

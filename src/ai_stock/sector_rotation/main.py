@@ -73,24 +73,27 @@ def run_daily_analysis(
         leader_components,
     )
 
+    board_names = {board.code: board.name for board in boards}
     board_rankings = strong_board.rank_boards(
         trend_scores,
         hype_scores,
         capital_scores,
         leader_components,
+        board_names,
         cfg.factor_weights,
-    )
-
-    predictions = rps_predict.predict_next_session(rotation_scores, cfg.rotation_weights)
-    rotation_candidates = rps_predict.predict_rotation_candidates(
-        board_rankings,
-        rotation_scores,
-        cfg.rotation_weights,
-        top_n=min(5, len(rotation_scores)),
     )
 
     top_selection = board_selection.select_primary_boards(
         board_rankings, top_n=min(3, len(board_rankings)), min_score=0.0
+    )
+
+    predictions = rps_predict.predict_next_session(rotation_scores, cfg.rotation_weights)
+    rotation_candidates = rps_predict.predict_rotation_candidates(
+        top_selection,
+        rotation_scores,
+        cfg.rotation_weights,
+        top_n=min(5, len(rotation_scores)),
+        board_names=board_names,
     )
     candidate_boards = board_selection.select_candidate_boards(
         rotation_candidates,
@@ -120,7 +123,7 @@ def run_daily_analysis(
         hype_scores,
         capital_scores,
         leader_components,
-        [score.board for score in board_rankings],
+        board_rankings,
     )
     rotation_path = visualization.rotation_pathway(rotation_candidates, predictions)
 

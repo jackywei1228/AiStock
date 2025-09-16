@@ -23,7 +23,7 @@ def write_results(
             "strong_boards",
             {
                 "run_date": iso_date,
-                "board_name": score.board,
+                "board_name": score.name or score.board,
                 "score": score.score,
                 "trend_score": float(score.breakdown.get("trend", 0.0)),
                 "hype_score": float(score.breakdown.get("hype", 0.0)),
@@ -36,7 +36,7 @@ def write_results(
                 "leaders",
                 {
                     "run_date": iso_date,
-                    "board_name": score.board,
+                    "board_name": score.name or score.board,
                     "stock_code": leader.symbol,
                     "stock_name": leader.name,
                     "is_leader": 1,
@@ -50,7 +50,7 @@ def write_results(
             "rps_candidates",
             {
                 "run_date": iso_date,
-                "board_name": candidate.board,
+                "board_name": candidate.name or candidate.board,
                 "rps_score": candidate.predicted,
                 "relative_lag": float(breakdown.get("relative_lag", 0.0)),
                 "capital_spillover": float(breakdown.get("capital_spillover", 0.0)),
