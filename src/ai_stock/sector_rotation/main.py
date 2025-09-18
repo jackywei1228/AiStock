@@ -42,19 +42,21 @@ def run_daily_analysis(
     hot_metrics = board_hot.fetch_board_hot(boards, cfg.start_date, cfg.end_date)
 
     board_members = _collect_board_members(boards)
-    board_component_quotes = {
-        board.code: stock_data.fetch_board_component_quotes(board)
-        for board in boards
-    }
 
-    all_stock_symbols = {
-        symbol for symbols in board_members.values() for symbol in symbols
-    }
-    for quotes in board_component_quotes.values():
-        for quote in quotes:
-            all_stock_symbols.add(quote.symbol)
+    all_stock_symbols = {symbol for symbols in board_members.values() for symbol in symbols}
 
     stock_history = stock_data.fetch_stock_data(all_stock_symbols, cfg.start_date, cfg.end_date)
+
+    board_component_quotes = {
+        board.code: stock_data.fetch_board_component_quotes(
+            board,
+            limit=80,
+            history=stock_history,
+            target_date=cfg.end_date,
+            members=board_members.get(board.code),
+        )
+        for board in boards
+    }
 
     trend_scores = trend_factor.calculate_trend_factor(price_history)
     hype_scores = hype_factor.calculate_hype_factor(hot_metrics)

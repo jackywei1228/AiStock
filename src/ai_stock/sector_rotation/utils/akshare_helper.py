@@ -10,6 +10,7 @@ import random
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from functools import lru_cache
+import math
 from typing import Dict, Iterable, Iterator, List, Optional, Sequence
 
 try:  # pragma: no cover - exercised in integration scenarios.
@@ -495,6 +496,8 @@ def _stock_history_cache(
                             "date": trading_day,
                             "close": _to_float(row.get("收盘")),
                             "turnover_rate": _to_float(row.get("换手率")),
+                            "turnover": _to_float(row.get("成交额")),
+                            "pct_change": _to_float(row.get("涨跌幅")),
                         }
                     )
                 if records:
@@ -598,14 +601,21 @@ def _synthetic_stock_history(symbol: str, start: date, end: date) -> List[Dict[s
     closes = random_walk(base=50.0, step=0.08, days=len(days), seed=seed)
     rng = random.Random(seed)
     records: List[Dict[str, float]] = []
+    prev_close = closes[0] if closes else 0.0
     for idx, trading_day in enumerate(days):
+        close = closes[idx]
+        change_pct = ((close - prev_close) / prev_close * 100) if idx and prev_close else 0.0
+        turnover = round(close * rng.uniform(100_000, 2_000_000), 2)
         records.append(
             {
                 "date": trading_day,
-                "close": closes[idx],
+                "close": close,
                 "turnover_rate": round(rng.uniform(0.5, 10.0), 3),
+                "turnover": turnover,
+                "pct_change": change_pct,
             }
         )
+        prev_close = close
     return records
 
 
@@ -673,7 +683,10 @@ def _to_float(value: object) -> float:
     if value is None:
         return 0.0
     if isinstance(value, (int, float)):
-        return float(value)
+        value = float(value)
+        if math.isnan(value):
+            return 0.0
+        return value
     text = str(value).strip()
     if not text or text in {"-", "--"}:
         return 0.0
