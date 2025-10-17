@@ -9,7 +9,9 @@ from ai_stock.sector_rotation.factors.leader_factor import LeaderCandidate
 from ai_stock.sector_rotation.strategy.stock_selection import select_leaders
 
 # ---------- 配置 ----------
-target_date = date(2025, 10, 10)
+target_date = date(2025, 10, 13)
+# 今天
+# target_date =  date.today()
 top_board_count = 10
 rps_top_n = 3
 leaders_per_board = 5
